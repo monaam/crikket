@@ -18,7 +18,7 @@ aws() {
 
 aws s3api list-objects-v2 --bucket "$STORAGE_BUCKET" --prefix organizations/ \
   --query "Contents[?ends_with(Key, '/capture/video.webm') && LastModified<'${CUTOFF}'].Key" \
-  --output text | tr '\t' '\n' | grep -v '^None$' | grep -v '^$' | while read -r key; do
+  --output text | tr '\t' '\n' | { grep -v -e '^None$' -e '^$' || true; } | while read -r key; do
     aws s3api delete-object --bucket "$STORAGE_BUCKET" --key "$key" >/dev/null
     echo "$(date -u +%FT%TZ) deleted s3://${STORAGE_BUCKET}/${key}"
   done
