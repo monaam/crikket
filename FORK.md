@@ -33,7 +33,7 @@ Then deploy (on the server) and, if `apps/extension` changed, rebuild the extens
 - EC2 `i-0a7a196fe29c8fb31` (t3.medium, **eu-west-1**, Elastic IP 52.51.54.244), AWS profile `trybe`. SSH: `ssh -i ~/.ssh/crikket-feedback.pem ubuntu@52.51.54.244`.
   eu-west-3 was at its 8 vCPU quota, hence Ireland.
 - Checkout at `~/crikket` (branch `trybe`). Env: `~/crikket/.env`, `apps/server/.env`, `apps/web/.env` (not in git).
-- S3 bucket `trybe-crikket-feedback` (eu-west-3), private, SSE-S3. IAM user `crikket-feedback-s3` can only touch this bucket.
+- S3 bucket `trybe-crikket-feedback` (eu-west-3), private, SSE-S3, versioned (replaced/deleted versions kept 30 days, so deletes are recoverable for 30 days). IAM user `crikket-feedback-s3` can only touch this bucket.
 - Postmark server "Crikket Feedback" (ID 21025120), From `noreply@thetrybe.xyz`.
 
 Deploy / update:
