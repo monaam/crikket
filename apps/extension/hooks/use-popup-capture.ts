@@ -1,6 +1,7 @@
 import { appendDebuggerSessionIdToUrl } from "@crikket/capture-core/debugger/recorder-session"
 import { reportNonFatalError } from "@crikket/shared/lib/errors"
 import { useState } from "react"
+import { requestAreaScreenshot } from "@/lib/area-screenshot"
 import {
   discardDebuggerSession,
   startDebuggerSession,
@@ -65,25 +66,32 @@ export function usePopupCapture(): UsePopupCaptureReturn {
       const captureContext = await getActiveTabContext()
       const activeTab = await getActiveCaptureTab()
 
+      // Trybe fork: screenshots start with an area selection on the page,
+      // handled by the background (see lib/area-screenshot.ts).
+      if (captureType === "screenshot") {
+        if (activeTab.windowId === null) {
+          throw new Error(ACTIVE_TAB_ERROR_MESSAGE)
+        }
+        await requestAreaScreenshot({
+          tabId: activeTab.id,
+          windowId: activeTab.windowId,
+          captureContext,
+        })
+        window.close()
+        return
+      }
+
       debuggerSessionId = await initializeDebuggerSession(
         captureType,
         activeTab.id
       )
 
-      if (captureType === "screenshot") {
-        await startScreenshotCapture({
-          activeTab,
-          captureContext,
-          debuggerSessionId,
-        })
-      } else {
-        await startVideoCapture({
-          activeTab,
-          captureContext,
-          debuggerSessionId,
-          setRecordingCountdown,
-        })
-      }
+      await startVideoCapture({
+        activeTab,
+        captureContext,
+        debuggerSessionId,
+        setRecordingCountdown,
+      })
 
       window.close()
     } catch (err) {
@@ -140,37 +148,6 @@ async function initializeDebuggerSession(
   })
 
   return session.sessionId
-}
-
-async function startScreenshotCapture(input: {
-  activeTab: ActiveCaptureTab
-  captureContext: CaptureContext
-  debuggerSessionId: string
-}): Promise<void> {
-  if (input.activeTab.windowId === null) {
-    throw new Error(ACTIVE_TAB_ERROR_MESSAGE)
-  }
-
-  const base64data = await chrome.tabs.captureVisibleTab(
-    input.activeTab.windowId,
-    {
-      format: "png",
-    }
-  )
-
-  await chrome.storage.local.set({
-    [CAPTURE_CONTEXT_STORAGE_KEY]: input.captureContext,
-    pendingScreenshot: base64data,
-  })
-
-  const recorderUrl = appendDebuggerSessionIdToUrl(
-    chrome.runtime.getURL("/recorder.html?captureType=screenshot"),
-    input.debuggerSessionId
-  )
-
-  await chrome.tabs.create({
-    url: recorderUrl,
-  })
 }
 
 async function startVideoCapture(input: {

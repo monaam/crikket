@@ -27,6 +27,7 @@ import { ScreenshotAnnotationEditor } from "@/components/screenshot-annotation-e
 import {
   createAnnotatedScreenshotBlob,
   type ScreenshotAnnotation,
+  type ScreenshotCrop,
 } from "@/lib/screenshot-annotations"
 
 const priorityValues = Object.values(PRIORITY_OPTIONS) as [
@@ -91,10 +92,12 @@ export function FormStep({
   }
 
   const [annotations, setAnnotations] = useState<ScreenshotAnnotation[]>([])
+  const [crop, setCrop] = useState<ScreenshotCrop | null>(null)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset when the capture changes
   useEffect(() => {
     setAnnotations([])
+    setCrop(null)
   }, [previewUrl])
 
   const form = useForm({
@@ -104,9 +107,12 @@ export function FormStep({
     },
     onSubmit: async ({ value }) => {
       const screenshotBlobOverride =
-        captureType === "screenshot" && previewUrl && annotations.length > 0
+        captureType === "screenshot" &&
+        previewUrl &&
+        (annotations.length > 0 || crop)
           ? await createAnnotatedScreenshotBlob({
               annotations,
+              crop,
               imageUrl: previewUrl,
             })
           : null
@@ -197,8 +203,10 @@ export function FormStep({
             <div className="bg-background p-3">
               <ScreenshotAnnotationEditor
                 annotations={annotations}
+                crop={crop}
                 disabled={isBusy}
                 onChange={setAnnotations}
+                onCropChange={setCrop}
                 src={previewUrl}
               />
             </div>

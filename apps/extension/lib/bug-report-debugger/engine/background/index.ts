@@ -11,15 +11,19 @@ import {
 import type { DebuggerRuntimeResponse } from "@crikket/capture-core/debugger/types"
 import { reportNonFatalError } from "@crikket/shared/lib/errors"
 import { isDebuggerRuntimeMessage } from "../../messaging"
-import { createDebuggerSessionStore } from "./session-store"
+import {
+  createDebuggerSessionStore,
+  type DebuggerSessionStore,
+} from "./session-store"
 
-export function registerDebuggerBackgroundListeners(): void {
+// Trybe fork: returns the store so the area-screenshot flow can start sessions.
+export function registerDebuggerBackgroundListeners(): DebuggerSessionStore | null {
   const scope = globalThis as typeof globalThis & {
     [BACKGROUND_LISTENER_FLAG]?: boolean
   }
 
   if (scope[BACKGROUND_LISTENER_FLAG]) {
-    return
+    return null
   }
 
   scope[BACKGROUND_LISTENER_FLAG] = true
@@ -133,4 +137,6 @@ export function registerDebuggerBackgroundListeners(): void {
       )
     })
   })
+
+  return store
 }

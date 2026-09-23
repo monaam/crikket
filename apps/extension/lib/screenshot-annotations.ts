@@ -35,11 +35,20 @@ export type ScreenshotAnnotation =
   | ScreenshotStrokeAnnotation
   | ScreenshotRectangleAnnotation
 
+// Trybe fork: crop area in the same 0..1 image coordinates as annotations.
+export interface ScreenshotCrop {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export async function createAnnotatedScreenshotBlob(input: {
   annotations: ScreenshotAnnotation[]
+  crop?: ScreenshotCrop | null
   imageUrl: string
 }): Promise<Blob | null> {
-  if (input.annotations.length === 0) {
+  if (input.annotations.length === 0 && !input.crop) {
     return null
   }
 
@@ -61,8 +70,10 @@ export async function createAnnotatedScreenshotBlob(input: {
     width: canvas.width,
   })
 
+  const output = input.crop ? cropCanvas(canvas, input.crop) : canvas
+
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
+    output.toBlob((blob) => {
       if (!blob) {
         reject(new Error("Failed to export annotated screenshot."))
         return
@@ -91,6 +102,50 @@ export function drawScreenshotAnnotations(input: {
       width: input.width,
     })
   }
+}
+
+function cropCanvas(
+  source: HTMLCanvasElement,
+  crop: ScreenshotCrop
+): HTMLCanvasElement {
+  const sx = Math.round(crop.x * source.width)
+  const sy = Math.round(crop.y * source.height)
+  const width = Math.max(1, Math.round(crop.width * source.width))
+  const height = Math.max(1, Math.round(crop.height * source.height))
+
+  const cropped = document.createElement("canvas")
+  cropped.width = width
+  cropped.height = height
+  cropped
+    .getContext("2d")
+    ?.drawImage(source, sx, sy, width, height, 0, 0, width, height)
+  return cropped
+}
+
+// Dims everything outside the crop area while editing.
+export function drawCropOverlay(input: {
+  context: CanvasRenderingContext2D
+  crop: ScreenshotCrop
+  height: number
+  width: number
+}): void {
+  const { context, crop, width, height } = input
+  const x = crop.x * width
+  const y = crop.y * height
+  const w = crop.width * width
+  const h = crop.height * height
+
+  context.save()
+  context.fillStyle = "rgba(15, 23, 42, 0.55)"
+  context.beginPath()
+  context.rect(0, 0, width, height)
+  context.rect(x, y, w, h)
+  context.fill("evenodd")
+  context.strokeStyle = "#ffffff"
+  context.lineWidth = 2
+  context.setLineDash([6, 4])
+  context.strokeRect(x, y, w, h)
+  context.restore()
 }
 
 export function clampAnnotationPoint(

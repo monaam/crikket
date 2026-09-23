@@ -31,7 +31,7 @@ interface MarkRecordingStartedPayload {
   recordingStartedAt: number
 }
 
-interface DebuggerSessionStore {
+export interface DebuggerSessionStore {
   injectDebuggerScriptForTab: (tabId: number) => Promise<void>
   startSession: (payload: StartSessionPayload) => Promise<{
     sessionId: string

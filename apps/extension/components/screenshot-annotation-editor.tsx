@@ -3,6 +3,7 @@
 import { Button } from "@crikket/ui/components/ui/button"
 import { cn } from "@crikket/ui/lib/utils"
 import {
+  Crop as CropIcon,
   Pencil as DrawIcon,
   Highlighter as HighlightIcon,
   Square as RectangleIcon,
@@ -18,21 +19,25 @@ import {
 } from "react"
 import {
   clampAnnotationPoint,
+  drawCropOverlay,
   drawScreenshotAnnotations,
   type ScreenshotAnnotation,
   type ScreenshotAnnotationColor,
+  type ScreenshotCrop,
   screenshotAnnotationColorOptions,
 } from "@/lib/screenshot-annotations"
 
-type AnnotationTool = "draw" | "highlight" | "rectangle"
+type AnnotationTool = "draw" | "highlight" | "rectangle" | "crop"
 
 const DEFAULT_TOOL: AnnotationTool = "draw"
 const DEFAULT_COLOR = screenshotAnnotationColorOptions[0].value
 
 export function ScreenshotAnnotationEditor(props: {
   annotations: ScreenshotAnnotation[]
+  crop: ScreenshotCrop | null
   disabled: boolean
   onChange: (annotations: ScreenshotAnnotation[]) => void
+  onCropChange: (crop: ScreenshotCrop | null) => void
   src: string
 }): React.JSX.Element {
   const annotationsRef = useRef(props.annotations)
@@ -45,6 +50,9 @@ export function ScreenshotAnnotationEditor(props: {
   const [draftAnnotation, setDraftAnnotation] =
     useState<ScreenshotAnnotation | null>(null)
   const draftAnnotationRef = useRef<ScreenshotAnnotation | null>(null)
+  const [draftCrop, setDraftCrop] = useState<ScreenshotCrop | null>(null)
+  const draftCropRef = useRef<ScreenshotCrop | null>(null)
+  const cropOriginRef = useRef<{ x: number; y: number } | null>(null)
   const [canvasWidth, setCanvasWidth] = useState(0)
 
   useEffect(() => {
@@ -139,7 +147,24 @@ export function ScreenshotAnnotationEditor(props: {
       image: loadedImage,
       width: displayWidth,
     })
-  }, [displayHeight, displayWidth, loadedImage, renderedAnnotations])
+
+    const visibleCrop = draftCrop ?? props.crop
+    if (visibleCrop) {
+      drawCropOverlay({
+        context,
+        crop: visibleCrop,
+        height: displayHeight,
+        width: displayWidth,
+      })
+    }
+  }, [
+    displayHeight,
+    displayWidth,
+    draftCrop,
+    loadedImage,
+    props.crop,
+    renderedAnnotations,
+  ])
 
   const commitDraftAnnotation = (annotation: ScreenshotAnnotation | null) => {
     if (!annotation) {
@@ -159,6 +184,14 @@ export function ScreenshotAnnotationEditor(props: {
 
     const point = toCanvasPoint(event)
     event.currentTarget.setPointerCapture(event.pointerId)
+
+    if (tool === "crop") {
+      cropOriginRef.current = point
+      const initialCrop = { x: point.x, y: point.y, width: 0, height: 0 }
+      draftCropRef.current = initialCrop
+      setDraftCrop(initialCrop)
+      return
+    }
 
     if (tool === "rectangle") {
       rectangleOriginRef.current = point
@@ -182,6 +215,20 @@ export function ScreenshotAnnotationEditor(props: {
   }
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const cropOrigin = cropOriginRef.current
+    if (cropOrigin && loadedImage) {
+      const point = toCanvasPoint(event)
+      const nextCrop = {
+        x: Math.min(cropOrigin.x, point.x),
+        y: Math.min(cropOrigin.y, point.y),
+        width: Math.abs(point.x - cropOrigin.x),
+        height: Math.abs(point.y - cropOrigin.y),
+      }
+      draftCropRef.current = nextCrop
+      setDraftCrop(nextCrop)
+      return
+    }
+
     if (!(draftAnnotation && loadedImage)) {
       return
     }
@@ -214,6 +261,22 @@ export function ScreenshotAnnotationEditor(props: {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
 
+    if (cropOriginRef.current) {
+      const finishedCrop = draftCropRef.current
+      cropOriginRef.current = null
+      draftCropRef.current = null
+      setDraftCrop(null)
+      // A click without a real drag keeps the previous crop.
+      if (
+        finishedCrop &&
+        finishedCrop.width >= 0.02 &&
+        finishedCrop.height >= 0.02
+      ) {
+        props.onCropChange(finishedCrop)
+      }
+      return
+    }
+
     const activeDraft = draftAnnotationRef.current
     if (!activeDraft) {
       return
@@ -242,6 +305,7 @@ export function ScreenshotAnnotationEditor(props: {
   }
 
   const hasAnnotations = props.annotations.length > 0
+  const hasEdits = hasAnnotations || props.crop !== null
 
   return (
     <div className="grid min-h-full grid-rows-[auto_1fr]">
@@ -271,6 +335,15 @@ export function ScreenshotAnnotationEditor(props: {
           label="Rectangle"
           onClick={() => {
             setTool("rectangle")
+          }}
+        />
+        <ToolButton
+          active={tool === "crop"}
+          disabled={props.disabled}
+          icon={<CropIcon className="h-4 w-4" />}
+          label="Crop"
+          onClick={() => {
+            setTool("crop")
           }}
         />
         <div className="flex items-center gap-2">
@@ -303,9 +376,10 @@ export function ScreenshotAnnotationEditor(props: {
           </Button>
           <Button
             className="gap-2"
-            disabled={props.disabled || !hasAnnotations}
+            disabled={props.disabled || !hasEdits}
             onClick={() => {
               props.onChange([])
+              props.onCropChange(null)
               setDraftAnnotation(null)
             }}
             size="icon-sm"
@@ -313,7 +387,7 @@ export function ScreenshotAnnotationEditor(props: {
             variant="outline"
           >
             <ResetIcon className="h-4 w-4" />
-            <span className="sr-only">Clear annotations</span>
+            <span className="sr-only">Clear annotations and crop</span>
           </Button>
         </div>
       </div>
@@ -324,7 +398,7 @@ export function ScreenshotAnnotationEditor(props: {
             <canvas
               aria-label="Screenshot annotation editor"
               className={cn(
-                "block w-full rounded-xl bg-white shadow-sm",
+                "block w-full rounded-sm bg-white shadow-sm",
                 props.disabled ? "cursor-default" : "cursor-crosshair"
               )}
               onPointerCancel={handlePointerEnd}
