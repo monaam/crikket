@@ -1,0 +1,25 @@
+# Trybe fork overlay: build server/web from this fork (Postmark mailer patch)
+# instead of pulling upstream images, and keep Postgres off the public interface.
+#   docker compose -f docker-compose.yml -f docker-compose.caddy.yml -f docker-compose.trybe.yml up -d --build
+services:
+  postgres:
+    ports: !override
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+  server:
+    image: crikket-server:trybe
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    ports: !override
+      - "127.0.0.1:${SERVER_PORT:-3000}:3000"
+      - "127.0.0.1:${WEB_PORT:-3001}:3001"
+  migrate:
+    image: crikket-server:trybe
+    pull_policy: never
+  web:
+    image: crikket-web:trybe
+    pull_policy: build
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile

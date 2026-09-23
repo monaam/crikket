@@ -35,11 +35,13 @@ export const env = createEnv({
             .map((origin) => origin.trim())
             .filter((origin) => origin.length > 0) ?? []
       ),
-    RESEND_API_KEY: z.string().min(1).optional(),
-    RESEND_FROM_EMAIL: z.email().optional(),
+    POSTMARK_SERVER_TOKEN: z.string().min(1).optional(),
+    POSTMARK_FROM_EMAIL: z.email().optional(),
+    POSTMARK_FROM_NAME: z.string().min(1).optional(),
+    POSTMARK_MESSAGE_STREAM: z.string().min(1).optional(),
     ENABLE_PAYMENTS: z
       .enum(["true", "false"])
-      .default("true")
+      .default("false")
       .transform((v) => v === "true"),
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),

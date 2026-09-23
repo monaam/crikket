@@ -1,7 +1,6 @@
 import { env } from "@crikket/env/server"
 import { render } from "@react-email/render"
 import type { ReactElement } from "react"
-import { Resend } from "resend"
 
 type SendAuthEmailInput = {
   to: string
@@ -10,9 +9,13 @@ type SendAuthEmailInput = {
   react: ReactElement
 }
 
-const resendClient = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null
-const fromEmail = env.RESEND_FROM_EMAIL
-const fromName = "Crikket"
+// Trybe fork: delivered through Postmark's /email API instead of Resend.
+const POSTMARK_API_URL = "https://api.postmarkapp.com/email"
+
+const postmarkServerToken = env.POSTMARK_SERVER_TOKEN
+const fromEmail = env.POSTMARK_FROM_EMAIL
+const fromName = env.POSTMARK_FROM_NAME ?? "Crikket"
+const messageStream = env.POSTMARK_MESSAGE_STREAM ?? "outbound"
 
 export const sendAuthEmail = async ({
   to,
@@ -20,15 +23,15 @@ export const sendAuthEmail = async ({
   text,
   react,
 }: SendAuthEmailInput): Promise<void> => {
-  if (!resendClient) {
+  if (!postmarkServerToken) {
     if (env.NODE_ENV === "production") {
       throw new Error(
-        "Missing RESEND_API_KEY. Set RESEND_API_KEY in apps/server/.env."
+        "Missing POSTMARK_SERVER_TOKEN. Set POSTMARK_SERVER_TOKEN in apps/server/.env."
       )
     }
 
     console.warn(
-      `[email] Missing RESEND_API_KEY in apps/server/.env. Skipping email delivery for ${to}.`
+      `[email] Missing POSTMARK_SERVER_TOKEN in apps/server/.env. Skipping email delivery for ${to}.`
     )
 
     return
@@ -36,21 +39,37 @@ export const sendAuthEmail = async ({
 
   if (!fromEmail) {
     throw new Error(
-      "Missing RESEND_FROM_EMAIL. Set RESEND_FROM_EMAIL in apps/server/.env."
+      "Missing POSTMARK_FROM_EMAIL. Set POSTMARK_FROM_EMAIL in apps/server/.env."
     )
   }
 
   const html = await render(react)
 
-  const { error } = await resendClient.emails.send({
-    from: `${fromName} <${fromEmail}>`,
-    to,
-    subject,
-    html,
-    text,
+  const response = await fetch(POSTMARK_API_URL, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "X-Postmark-Server-Token": postmarkServerToken,
+    },
+    body: JSON.stringify({
+      From: `${fromName} <${fromEmail}>`,
+      To: to,
+      Subject: subject,
+      HtmlBody: html,
+      TextBody: text,
+      MessageStream: messageStream,
+    }),
   })
 
-  if (error) {
-    throw new Error(`Failed to send auth email: ${error.message}`)
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      ErrorCode?: number
+      Message?: string
+    } | null
+
+    throw new Error(
+      `Failed to send auth email: ${body?.Message ?? response.statusText} (Postmark ErrorCode ${body?.ErrorCode ?? response.status})`
+    )
   }
 }
