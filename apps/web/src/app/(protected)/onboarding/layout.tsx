@@ -7,10 +7,16 @@ export default async function OnboardingLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { organizations } = await getProtectedAuthData()
+  const { organizations, session } = await getProtectedAuthData()
 
   if (organizations.length > 0) {
     redirect("/")
+  }
+
+  // Trybe fork: invited sign-ups join their organizations once their email is
+  // verified, so send them to verification instead of creating a new org.
+  if (session && !session.user.emailVerified) {
+    redirect("/verify-email")
   }
 
   return children

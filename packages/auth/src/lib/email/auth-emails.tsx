@@ -107,7 +107,7 @@ export const sendOrganizationInvitationEmail = async ({
   await sendAuthEmail({
     to: email,
     subject: `You're invited to join ${organizationName}`,
-    text: `${inviterName} invited you to join ${organizationName} as ${role}. Open this invitation: ${invitationUrl}\n\nInstall the browser extension: ${extensionGuideUrl}`,
+    text: `${inviterName} invited you to join ${organizationName} as ${role}. Open this invitation: ${invitationUrl}\n\nNew here? Click "Sign up" on the sign-in page and create your account with this email address.\n\nInstall the browser extension: ${extensionGuideUrl}`,
     react: (
       <OrganizationInvitationTemplate
         extensionGuideUrl={extensionGuideUrl}

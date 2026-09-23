@@ -29,6 +29,11 @@ export function OrganizationInvitationTemplate({
       <Button href={invitationUrl} style={buttonStyle}>
         Review invitation
       </Button>
+      <Text style={guideTextStyle}>
+        New here? Click <strong>Sign up</strong> on the sign-in page and create
+        your account with this email address. You'll get a code to verify it,
+        then you're in.
+      </Text>
       {extensionGuideUrl ? (
         <Text style={guideTextStyle}>
           Reports are sent with the browser extension. If you haven't installed

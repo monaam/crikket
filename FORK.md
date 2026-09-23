@@ -10,7 +10,8 @@ Upstream: https://github.com/redpangilinan/crikket (AGPL-3.0 — this fork stays
 | 1 | `packages/auth/src/lib/email/send-auth-email.ts`, `packages/env/src/server.ts`, `apps/server/.env.example` | Email goes through Postmark (`POST https://api.postmarkapp.com/email`) instead of Resend. Env: `POSTMARK_SERVER_TOKEN`, `POSTMARK_FROM_EMAIL`, `POSTMARK_FROM_NAME`, `POSTMARK_MESSAGE_STREAM`. Still throws in production when unconfigured. |
 | 2 | `packages/env/src/server.ts` | `ENABLE_PAYMENTS` defaults to `false` (upstream: `true`, which puts every org on the `free` plan = no reports). Prod `.env` also sets it explicitly. |
 | 3 | `apps/extension/.env.production`, `apps/extension/wxt.config.ts` | Extension builds target feedback.thetrybe.xyz; manifest `key` pins the extension ID to `jpclpbgghajgfmgnahclacibedmhhpfp` (allowed in the S3 bucket CORS). |
-| 4 | `packages/auth/scripts/create-user.ts` | Signups are closed (`ALLOWED_SIGNUP_DOMAINS=signup-disabled.invalid`), which blocks *every* better-auth user creation incl. invitations and the admin plugin. This script inserts users directly. |
+| 4 | `packages/auth/scripts/create-user.ts` | Signups are closed (`ALLOWED_SIGNUP_DOMAINS=signup-disabled.invalid`), which blocks better-auth user creation incl. the admin plugin. This script inserts users directly. |
+| 7 | `packages/auth/src/index.ts`, `packages/auth/src/lib/invited-signup.ts`, `apps/web/src/app/(protected)/onboarding/layout.tsx` | Invite-only sign-up: an email with a pending, unexpired invitation may sign up; its invitations are accepted once the email is verified (sign-up OTP). Unverified users are sent to `/verify-email` instead of the create-org onboarding. |
 | 5 | `docker-compose.trybe.yml`, `deploy/trybe/*` | Build images from the fork, bind Postgres/app ports to localhost, video expiry + DB backup cron scripts, Caddy serving the extension guide at `/extension/`. |
 | 6 | `packages/auth/src/lib/email/auth-emails.tsx`, `templates/welcome-template.tsx`, `templates/organization-invitation-template.tsx` | Welcome email sent by `create-user.ts` (install guide + "Forgot password?" to set a password); invitation emails link the install guide. |
 
@@ -23,7 +24,7 @@ git rebase upstream/master          # conflicts only expected in the files above
 # Re-check after rebase:
 grep -rn "resend\|RESEND_" packages apps --include=*.ts   # new Resend call sites need the Postmark path
 grep -n "ENABLE_PAYMENTS" -A3 packages/env/src/server.ts   # default must still be "false"
-grep -n "databaseHooks" -A20 packages/auth/src/index.ts   # signup block still in user.create.before?
+grep -n "databaseHooks" -A35 packages/auth/src/index.ts   # invite-only signup hooks (create.before/after, update.after) intact?
 git push --force-with-lease origin trybe
 ```
 
@@ -50,6 +51,11 @@ Cron (`crontab -l` as ubuntu):
 - `deploy/trybe/backup-db.sh` nightly: `pg_dump` → `s3://trybe-crikket-feedback/backups/` (30-day lifecycle).
 
 ## Accounts
+
+Preferred: invite people from the dashboard (Settings → Members). They click **Sign up** with the invited address,
+verify the emailed code, and join the organisation automatically. Invitations expire after 48 hours (better-auth default); re-invite if needed.
+
+Alternative, for accounts without an invitation:
 
 Create users and add them to organisations (org slugs are shown in Settings):
 

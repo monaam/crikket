@@ -13,12 +13,15 @@ import { APIError } from "better-auth/api"
 import { admin } from "better-auth/plugins/admin"
 import { emailOTP } from "better-auth/plugins/email-otp"
 import { organization } from "better-auth/plugins/organization"
-
 import {
   sendEmailOtpEmail,
   sendEmailVerificationLinkEmail,
   sendOrganizationInvitationEmail,
 } from "./lib/email/auth-emails"
+import {
+  acceptPendingInvitations,
+  hasPendingInvitation,
+} from "./lib/invited-signup"
 
 const MINUTE = 60
 const HOUR = 60 * MINUTE
@@ -125,8 +128,6 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
-          await Promise.resolve()
-
           const email = user.email?.toLowerCase() ?? ""
           const domain = email.split("@")[1] ?? ""
 
@@ -134,12 +135,24 @@ export const auth = betterAuth({
           if (
             !allowAll &&
             allowedSignupDomains.length > 0 &&
-            !allowedSignupDomains.includes(domain)
+            !allowedSignupDomains.includes(domain) &&
+            !(await hasPendingInvitation(email))
           ) {
             throw new APIError("UNPROCESSABLE_ENTITY", {
-              message: `Sign up is only available for ${allowedSignupDomains.filter((d) => d !== "*").join(", ")} domains.`,
+              message:
+                "Sign up is by invitation only. Ask your team admin to invite this email address.",
             })
           }
+        },
+        after: async (user) => {
+          if (user.emailVerified) await acceptPendingInvitations(user)
+        },
+      },
+      update: {
+        // Invited sign-ups join their organizations once the email is verified
+        // (OTP sent on sign-up), so knowing an invited address isn't enough.
+        after: async (user) => {
+          if (user.emailVerified) await acceptPendingInvitations(user)
         },
       },
     },
