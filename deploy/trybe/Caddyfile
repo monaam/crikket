@@ -9,7 +9,7 @@
 	redir /extension /extension/ 308
 	handle_path /extension/* {
 		root * /srv/extension
-		header /crikket-extension.zip Cache-Control "no-cache"
+		header Cache-Control "no-cache"
 		file_server
 	}
 
