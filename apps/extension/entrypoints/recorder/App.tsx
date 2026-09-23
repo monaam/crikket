@@ -285,8 +285,12 @@ function App() {
     title: string
     description: string
     priority: Priority
+    screenshotBlobOverride?: Blob
   }) => {
-    const blob = captureType === "video" ? recordedBlob : screenshotBlob
+    const blob =
+      captureType === "video"
+        ? recordedBlob
+        : (values.screenshotBlobOverride ?? screenshotBlob)
     if (!blob || blob.size === 0) {
       setSubmitError("Capture data is missing. Please capture again.")
       setState("stopped")

@@ -15,8 +15,19 @@ import {
 import { Textarea } from "@crikket/ui/components/ui/textarea"
 import { useForm } from "@tanstack/react-form"
 import { AlertTriangle } from "lucide-react"
-import { type SyntheticEvent, useCallback, useEffect, useRef } from "react"
+import {
+  type SyntheticEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
 import * as z from "zod"
+import { ScreenshotAnnotationEditor } from "@/components/screenshot-annotation-editor"
+import {
+  createAnnotatedScreenshotBlob,
+  type ScreenshotAnnotation,
+} from "@/lib/screenshot-annotations"
 
 const priorityValues = Object.values(PRIORITY_OPTIONS) as [
   Priority,
@@ -50,6 +61,7 @@ interface FormStepProps {
     title: string
     description: string
     priority: Priority
+    screenshotBlobOverride?: Blob
   }) => void
   onCancel: () => void
 }
@@ -78,16 +90,32 @@ export function FormStep({
     priority: PRIORITY_OPTIONS.none,
   }
 
+  const [annotations, setAnnotations] = useState<ScreenshotAnnotation[]>([])
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset when the capture changes
+  useEffect(() => {
+    setAnnotations([])
+  }, [previewUrl])
+
   const form = useForm({
     defaultValues,
     validators: {
       onSubmit: formSchema,
     },
     onSubmit: async ({ value }) => {
+      const screenshotBlobOverride =
+        captureType === "screenshot" && previewUrl && annotations.length > 0
+          ? await createAnnotatedScreenshotBlob({
+              annotations,
+              imageUrl: previewUrl,
+            })
+          : null
+
       await onSubmit({
         title: value.title,
         description: value.description,
         priority: value.priority,
+        ...(screenshotBlobOverride ? { screenshotBlobOverride } : {}),
       })
     },
   })
@@ -166,11 +194,14 @@ export function FormStep({
               </video>
             </div>
           ) : (
-            <img
-              alt="Screenshot preview"
-              className="max-h-[400px] w-full bg-black object-contain"
-              src={previewUrl}
-            />
+            <div className="bg-background p-3">
+              <ScreenshotAnnotationEditor
+                annotations={annotations}
+                disabled={isBusy}
+                onChange={setAnnotations}
+                src={previewUrl}
+              />
+            </div>
           )}
         </div>
       )}
