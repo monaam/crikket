@@ -45,6 +45,9 @@ cd ~/crikket && git pull
 docker compose -f docker-compose.yml -f docker-compose.caddy.yml -f docker-compose.trybe.yml up -d --build
 ```
 
+If `deploy/trybe/Caddyfile` changed: `docker exec crikket-caddy caddy reload --config /etc/caddy/trybe/Caddyfile`.
+Guide/zip changes under `deploy/trybe/extension-site/` are live as soon as they're pulled.
+
 Cron (`crontab -l` as ubuntu):
 
 - `deploy/trybe/expire-videos.sh` daily: deletes `…/capture/video.webm` older than 90 days (S3 lifecycle can't match on key suffix).
