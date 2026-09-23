@@ -3,8 +3,11 @@
 #   docker compose -f docker-compose.yml -f docker-compose.caddy.yml -f docker-compose.trybe.yml up -d --build
 services:
   caddy:
+    # Directory mount (not a single file) so `git pull` changes are visible;
+    # apply them with: docker exec crikket-caddy caddy reload --config /etc/caddy/trybe/Caddyfile
+    command: ["caddy", "run", "--config", "/etc/caddy/trybe/Caddyfile", "--adapter", "caddyfile"]
     volumes:
-      - ./deploy/trybe/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/trybe:/etc/caddy/trybe:ro
       - ./deploy/trybe/extension-site:/srv/extension:ro
   postgres:
     ports: !override
