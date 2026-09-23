@@ -2,6 +2,10 @@
 # instead of pulling upstream images, and keep Postgres off the public interface.
 #   docker compose -f docker-compose.yml -f docker-compose.caddy.yml -f docker-compose.trybe.yml up -d --build
 services:
+  caddy:
+    volumes:
+      - ./deploy/trybe/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/trybe/extension-site:/srv/extension:ro
   postgres:
     ports: !override
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"

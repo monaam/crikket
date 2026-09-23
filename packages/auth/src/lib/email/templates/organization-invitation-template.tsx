@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import { Button, Heading, Text } from "@react-email/components"
+import { Button, Heading, Link, Text } from "@react-email/components"
 import { AuthEmailLayout } from "./auth-email-layout"
 
 type OrganizationInvitationTemplateProps = {
@@ -7,6 +7,7 @@ type OrganizationInvitationTemplateProps = {
   inviterName: string
   role: string
   invitationUrl: string
+  extensionGuideUrl?: string
 }
 
 export function OrganizationInvitationTemplate({
@@ -14,6 +15,7 @@ export function OrganizationInvitationTemplate({
   inviterName,
   role,
   invitationUrl,
+  extensionGuideUrl,
 }: OrganizationInvitationTemplateProps) {
   return (
     <AuthEmailLayout
@@ -27,6 +29,13 @@ export function OrganizationInvitationTemplate({
       <Button href={invitationUrl} style={buttonStyle}>
         Review invitation
       </Button>
+      {extensionGuideUrl ? (
+        <Text style={guideTextStyle}>
+          Reports are sent with the browser extension. If you haven't installed
+          it yet, follow the <Link href={extensionGuideUrl}>install guide</Link>
+          .
+        </Text>
+      ) : null}
       <Text style={helpTextStyle}>
         If you do not want to join this organization, you can ignore this email.
       </Text>
@@ -64,4 +73,11 @@ const helpTextStyle = {
   fontSize: "12px",
   lineHeight: "20px",
   margin: "16px 0 0",
+}
+
+const guideTextStyle = {
+  color: "#334155",
+  fontSize: "14px",
+  lineHeight: "22px",
+  margin: "20px 0 0",
 }

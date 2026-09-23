@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Install the Trybe Feedback extension</title>
+    <meta name="robots" content="noindex">
+    <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --faint: #64748b;
+      --border: #e2e8f0;
+      --accent: #0f172a;
+      --accent-text: #ffffff;
+      --warn-bg: #fff7ed;
+      --warn-border: #fdba74;
+      --warn-text: #7c2d12;
+      --code-bg: #f1f5f9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1120;
+        --card: #111827;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --faint: #9ca3af;
+        --border: #1f2937;
+        --accent: #e5e7eb;
+        --accent-text: #0b1120;
+        --warn-bg: #2a1a0e;
+        --warn-border: #9a3412;
+        --warn-text: #fed7aa;
+        --code-bg: #1f2937;
+      }
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font:
+        16px / 1.6 Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 16px 64px;
+    }
+    h1 {
+      font-size: 30px;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin: 0 0 8px;
+    }
+    h2 {
+      font-size: 19px;
+      margin: 0 0 12px;
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+    }
+    .num {
+      flex: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--accent-text);
+      font-size: 14px;
+      display: inline-grid;
+      place-items: center;
+      position: relative;
+      top: -2px;
+    }
+    .lead {
+      color: var(--muted);
+      margin: 0 0 24px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 20px 8px;
+      margin: 0 0 16px;
+    }
+    .card.warn {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: var(--warn-text);
+    }
+    ol,
+    ul {
+      padding-left: 22px;
+      margin: 0 0 12px;
+    }
+    li {
+      margin: 4px 0;
+    }
+    p {
+      margin: 0 0 12px;
+    }
+    code,
+    kbd {
+      background: var(--code-bg);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      word-break: break-all;
+    }
+    .download {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--accent-text);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin: 4px 0 12px;
+    }
+    .need {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    a {
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      margin: 0 0 12px;
+    }
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      padding: 8px 8px 8px 0;
+      border-top: 1px solid var(--border);
+    }
+    th {
+      color: var(--faint);
+      font-weight: 600;
+      border-top: 0;
+    }
+    .note {
+      color: var(--faint);
+      font-size: 14px;
+    }
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 25px;
+      }
+      .card {
+        padding: 16px 16px 4px;
+      }
+    }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Install the Trybe Feedback extension</h1>
+      <p class="lead">
+        Send screenshots and screen recordings of our products straight to the
+        product team. Setup takes about 5 minutes and you only do it once.
+      </p>
+
+      <p class="need">
+        <strong>You need:</strong> Google Chrome (or Edge/Brave) and a Trybe
+        Feedback account. You'll have received a "Your Trybe Feedback account is
+        ready" email.
+      </p>
+
+      <section class="card">
+        <h2><span class="num">1</span>Download and unzip</h2>
+        <a class="download" href="crikket-extension.zip" download
+          >Download the extension (.zip)</a
+        >
+        <ol>
+          <li>
+            Unzip it: double-click it on Mac, or right-click →
+            <strong>Extract All</strong> on Windows.
+          </li>
+          <li>
+            Move the unzipped folder <code>chrome-mv3</code> somewhere
+            permanent, such as your <strong>Documents</strong> folder.
+          </li>
+        </ol>
+        <p>
+          <strong>Don't delete or move this folder later</strong>, or the
+          extension stops working.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">2</span>Add it to Chrome</h2>
+        <ol>
+          <li>
+            In the address bar, type <code>chrome://extensions</code> and press
+            Enter.
+          </li>
+          <li>
+            Turn on <strong>Developer mode</strong> (switch in the top-right
+            corner).
+          </li>
+          <li>Click <strong>Load unpacked</strong> (top-left).</li>
+          <li>
+            Select the <code>chrome-mv3</code> folder from step 1.
+          </li>
+          <li><strong>Crikket</strong> now shows up in the list.</li>
+          <li>
+            Click the puzzle-piece icon 🧩 next to the address bar, then the pin
+            📌 next to <strong>Crikket</strong> so its icon is always visible.
+          </li>
+        </ol>
+        <p class="note">
+          Chrome may sometimes show a banner about "developer mode extensions".
+          That's expected; just close it.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">3</span>Sign in</h2>
+        <ol>
+          <li>Go to <a href="/login">feedback.thetrybe.xyz</a>.</li>
+          <li>
+            <strong>First time?</strong> Click <strong
+              >Forgot password?</strong
+            >, enter your work email and choose a password with the code you
+            receive by email.
+          </li>
+          <li>
+            Sign in and stay signed in. The extension uses this same login.
+          </li>
+        </ol>
+        <p class="note">
+          Accounts are created by the product team. "Sign up" won't work, so ask
+          them if you don't have one.
+        </p>
+      </section>
+
+      <section class="card warn">
+        <h2>
+          <span class="num">4</span>Pick the right workspace before you capture
+        </h2>
+        <p>
+          Reports are filed under the workspace (<strong
+            >Fatoura, Trybe, ComptaLégal or Tutorios</strong
+          >) that is
+          <strong
+            >currently selected on the website</strong
+          >. The extension has no workspace picker.
+        </p>
+        <ul>
+          <li>If you only belong to one workspace, skip this step.</li>
+          <li>
+            If you belong to several, open <a href="/"
+              >feedback.thetrybe.xyz</a
+            >, switch workspace with the selector at the top left, <strong
+              >then</strong
+            > capture.
+          </li>
+        </ul>
+        <p>
+          A report filed in the wrong workspace won't be seen by the right team.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">5</span>Send feedback</h2>
+        <ol>
+          <li>
+            Open the page with the problem and click the
+            <strong>Crikket</strong> icon.
+          </li>
+          <li>
+            Choose one:
+            <ul>
+              <li>
+                <strong>Screenshot</strong>: grabs the visible page. You can
+                draw on it or highlight areas.
+              </li>
+              <li>
+                <strong>Record video</strong>: records the tab while you
+                reproduce the problem. Click stop when done.
+              </li>
+            </ul>
+            Shortcuts: <kbd>Alt+Shift+C</kbd> screenshot ·
+            <kbd>Alt+Shift+R</kbd> start recording · <kbd>Alt+Shift+S</kbd>
+            stop.
+          </li>
+          <li>
+            Give it a clear title and describe
+            <strong>what you did, what you expected, and what happened</strong>.
+            Mention the product/page in the title (e.g. "CRM – invoice list
+            doesn't load") and set a priority if you know it.
+          </li>
+          <li>Submit. You'll get a link to the report.</li>
+        </ol>
+        <p class="note">
+          Videos are kept for 90 days. Screenshots and the written report stay.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>When we release an update</h2>
+        <p>
+          The extension does <strong>not</strong> update by itself. When the
+          product team announces a new version:
+        </p>
+        <ol>
+          <li>
+            Download the zip again from this page and replace the contents of
+            your <code>chrome-mv3</code> folder (same location).
+          </li>
+          <li>
+            Go to <code>chrome://extensions</code> and click the ↻ reload arrow
+            on the Crikket card.
+          </li>
+        </ol>
+      </section>
+
+      <section class="card">
+        <h2>Troubleshooting</h2>
+        <table>
+          <tr>
+            <th>Problem</th>
+            <th>Fix</th>
+          </tr>
+          <tr>
+            <td>"Please sign in" or sent to a login page</td>
+            <td>
+              Sign in at feedback.thetrybe.xyz in the same Chrome profile, then
+              try again.
+            </td>
+          </tr>
+          <tr>
+            <td>Report went to the wrong workspace</td>
+            <td>
+              Switch workspace on the website (step 4) and send it again. Ask
+              the product team to delete the wrong one.
+            </td>
+          </tr>
+          <tr>
+            <td>Crikket disappeared from Chrome</td>
+            <td>
+              The folder was moved or deleted. Repeat step 2 with the folder in
+              its new place.
+            </td>
+          </tr>
+          <tr>
+            <td>Upload fails</td>
+            <td>
+              Check your connection and retry. If it keeps failing, screenshot
+              the error and send it to the product team.
+            </td>
+          </tr>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

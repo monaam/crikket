@@ -11,7 +11,8 @@ Upstream: https://github.com/redpangilinan/crikket (AGPL-3.0 — this fork stays
 | 2 | `packages/env/src/server.ts` | `ENABLE_PAYMENTS` defaults to `false` (upstream: `true`, which puts every org on the `free` plan = no reports). Prod `.env` also sets it explicitly. |
 | 3 | `apps/extension/.env.production`, `apps/extension/wxt.config.ts` | Extension builds target feedback.thetrybe.xyz; manifest `key` pins the extension ID to `jpclpbgghajgfmgnahclacibedmhhpfp` (allowed in the S3 bucket CORS). |
 | 4 | `packages/auth/scripts/create-user.ts` | Signups are closed (`ALLOWED_SIGNUP_DOMAINS=signup-disabled.invalid`), which blocks *every* better-auth user creation incl. invitations and the admin plugin. This script inserts users directly. |
-| 5 | `docker-compose.trybe.yml`, `deploy/trybe/*` | Build images from the fork, bind Postgres/app ports to localhost, video expiry + DB backup cron scripts. |
+| 5 | `docker-compose.trybe.yml`, `deploy/trybe/*` | Build images from the fork, bind Postgres/app ports to localhost, video expiry + DB backup cron scripts, Caddy serving the extension guide at `/extension/`. |
+| 6 | `packages/auth/src/lib/email/auth-emails.tsx`, `templates/welcome-template.tsx`, `templates/organization-invitation-template.tsx` | Welcome email sent by `create-user.ts` (install guide + "Forgot password?" to set a password); invitation emails link the install guide. |
 
 ## Updating from upstream
 
@@ -58,8 +59,8 @@ docker compose -f docker-compose.yml -f docker-compose.caddy.yml -f docker-compo
   bun packages/auth/scripts/create-user.ts --email jane@thetrybe.xyz --name "Jane Doe" --org fatoura --org trybe:admin
 ```
 
-Without `--password` a temporary password is printed. The user can also sign in with an emailed code or reset the password on the login page.
-Running it again for an existing email only adds the missing memberships.
+New users get a welcome email with the install guide and a link to set their password via "Forgot password?" (the login page has no email-code sign-in).
+Pass `--no-email` to skip it. Running it again for an existing email only adds the missing memberships (no email).
 
 ## Extension
 
@@ -67,4 +68,5 @@ Running it again for an existing email only adds the missing memberships.
 bun install && bun run build -- --filter=extension   # → apps/extension/.output/chrome-mv3 (turbo builds capture-core first)
 ```
 
-Zip `chrome-mv3` and share it together with `deploy/trybe/EXTENSION-INSTALL.md`. Unpacked extensions don't auto-update.
+Then `cd apps/extension/.output && zip -r ../../../deploy/trybe/extension-site/crikket-extension.zip chrome-mv3`, commit, and `git pull` on the server:
+the guide at https://feedback.thetrybe.xyz/extension/ serves that zip. Unpacked extensions don't auto-update, so tell everyone to re-download and reload.

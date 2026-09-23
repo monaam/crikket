@@ -1,0 +1,24 @@
+# Trybe fork: upstream Caddyfile + public extension install guide at /extension/.
+{
+	email {$CADDY_ACME_EMAIL}
+}
+
+{$NEXT_PUBLIC_APP_URL} {
+	encode gzip zstd
+
+	redir /extension /extension/ 308
+	handle_path /extension/* {
+		root * /srv/extension
+		header /crikket-extension.zip Cache-Control "no-cache"
+		file_server
+	}
+
+	@api path /api/* /rpc/*
+	handle @api {
+		reverse_proxy server:3000
+	}
+
+	handle {
+		reverse_proxy server:3001
+	}
+}

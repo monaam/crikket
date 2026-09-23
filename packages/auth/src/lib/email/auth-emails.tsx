@@ -5,6 +5,7 @@ import type { AuthEmailOtpType } from "./templates/email-otp-template"
 import { AuthEmailOtpTemplate } from "./templates/email-otp-template"
 import { EmailVerificationLinkTemplate } from "./templates/email-verification-link-template"
 import { OrganizationInvitationTemplate } from "./templates/organization-invitation-template"
+import { WelcomeTemplate } from "./templates/welcome-template"
 
 type SendEmailOtpEmailInput = {
   email: string
@@ -46,6 +47,9 @@ if (!appUrl) {
     "CORS_ORIGINS must include a frontend origin for auth email links."
   )
 }
+
+// Trybe fork: static install guide served by Caddy (deploy/trybe/extension-site).
+const extensionGuideUrl = new URL("/extension/", appUrl).toString()
 
 const toAppUrl = (urlOrPath: string): string => {
   const parsed = new URL(urlOrPath, appUrl)
@@ -103,13 +107,47 @@ export const sendOrganizationInvitationEmail = async ({
   await sendAuthEmail({
     to: email,
     subject: `You're invited to join ${organizationName}`,
-    text: `${inviterName} invited you to join ${organizationName} as ${role}. Open this invitation: ${invitationUrl}`,
+    text: `${inviterName} invited you to join ${organizationName} as ${role}. Open this invitation: ${invitationUrl}\n\nInstall the browser extension: ${extensionGuideUrl}`,
     react: (
       <OrganizationInvitationTemplate
+        extensionGuideUrl={extensionGuideUrl}
         invitationUrl={invitationUrl}
         inviterName={inviterName}
         organizationName={organizationName}
         role={role}
+      />
+    ),
+  })
+}
+
+type SendWelcomeEmailInput = {
+  email: string
+  name: string
+  organizationNames: string[]
+}
+
+export const sendWelcomeEmail = async ({
+  email,
+  name,
+  organizationNames,
+}: SendWelcomeEmailInput): Promise<void> => {
+  const forgotPasswordUrl = new URL("/forgot-password", appUrl).toString()
+  const access =
+    organizationNames.length > 0
+      ? ` You have access to ${organizationNames.join(", ")}.`
+      : ""
+
+  await sendAuthEmail({
+    to: email,
+    subject: "Your Trybe Feedback account is ready",
+    text: `Hi ${name}, an account has been created for you on Trybe Feedback.${access}\n\n1. Install the browser extension: ${extensionGuideUrl}\n2. Set your password at ${forgotPasswordUrl} with ${email}: you'll get a code by email.`,
+    react: (
+      <WelcomeTemplate
+        email={email}
+        extensionGuideUrl={extensionGuideUrl}
+        forgotPasswordUrl={forgotPasswordUrl}
+        name={name}
+        organizationNames={organizationNames}
       />
     ),
   })
